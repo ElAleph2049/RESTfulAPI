@@ -1,0 +1,117 @@
+package main
+
+import (
+	"encoding/json"
+	"net/http"
+	"strconv"
+
+	"github.com/gorilla/handlers"
+	"github.com/gorilla/mux"
+)
+
+type User struct {
+	ID          int    `json:"id"`
+	Name        string `json:"name"`
+	HoursWorked int    `json:"hoursWorked"`
+}
+
+var users = []User{}
+var nextID = 1
+
+func getUsers(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(users)
+}
+
+func getUserByID(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	id, _ := strconv.Atoi(params["id"])
+	for _, user := range users {
+		if user.ID == id {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(user)
+			return
+		}
+	}
+	http.Error(w, "User not found", http.StatusNotFound)
+}
+
+func addUser(w http.ResponseWriter, r *http.Request) {
+	var user User
+	json.NewDecoder(r.Body).Decode(&user)
+	user.ID = nextID
+	nextID++
+	users = append(users, user)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(user)
+}
+
+func updateUserByID(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	id, _ := strconv.Atoi(params["id"])
+	for i, user := range users {
+		if user.ID == id {
+			json.NewDecoder(r.Body).Decode(&user)
+			users[i] = user
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(user)
+			return
+		}
+	}
+	http.Error(w, "User not found", http.StatusNotFound)
+}
+
+func addHoursWorked(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	id, _ := strconv.Atoi(params["id"])
+	var hours struct {
+		Hours int `json:"hours"`
+	}
+	json.NewDecoder(r.Body).Decode(&hours)
+	for i, user := range users {
+		if user.ID == id {
+			users[i].HoursWorked += hours.Hours
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(users[i])
+			return
+		}
+	}
+	http.Error(w, "User not found", http.StatusNotFound)
+}
+
+func deleteUserByID(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	id, _ := strconv.Atoi(params["id"])
+	for i, user := range users {
+		if user.ID == id {
+			users = append(users[:i], users[i+1:]...)
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+	}
+	http.Error(w, "User not found", http.StatusNotFound)
+}
+
+func deleteAllUsers(w http.ResponseWriter, r *http.Request) {
+	users = []User{}
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func main() {
+	r := mux.NewRouter()
+	r.HandleFunc("/users", getUsers).Methods("GET")
+	r.HandleFunc("/users/{id}", getUserByID).Methods("GET")
+	r.HandleFunc("/users", addUser).Methods("POST")
+	r.HandleFunc("/users/{id}", updateUserByID).Methods("PUT")
+	r.HandleFunc("/users/{id}/hours", addHoursWorked).Methods("PATCH")
+	r.HandleFunc("/users/{id}", deleteUserByID).Methods("DELETE")
+	r.HandleFunc("/users", deleteAllUsers).Methods("DELETE")
+
+	// Enable CORS for all origins and methods
+	corsHandler := handlers.CORS(
+		handlers.AllowedOrigins([]string{"*"}),
+		handlers.AllowedHeaders([]string{"Content-Type", "Authorization"}),
+	)(r)
+
+	http.ListenAndServe(":5004", corsHandler)
+}

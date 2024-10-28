@@ -11,7 +11,7 @@ const MainControl: React.FC = () => {
     const [endpoint1, setEndpoint1] = useState('5001');
     const [endpoint2, setEndpoint2] = useState('5002');
     const [endpoint3, setEndpoint3] = useState(''); // CHANGEME to reflect the port number of the third endpoint
-    const [endpoint4, setEndpoint4] = useState(''); // CHANGEME to reflect the port number of the fourth endpoint
+    const [endpoint4, setEndpoint4] = useState('5004'); 
     const [selectedEndpoint, setSelectedEndpoint] = useState('endpoint1');
     const [jsonResult, setJsonResult] = useState('');
     const [userId, setUserId] = useState('');
@@ -268,9 +268,9 @@ const MainControl: React.FC = () => {
                             />
                         </Stack>
                         <Stack direction="row" alignItems="center">
-                            <FormControlLabel value="endpoint4" control={<Radio />} label="Endpoint 4" />
+                            <FormControlLabel value="endpoint4" control={<Radio />} label="Go" />
                             <TextField
-                                label="CHANGEME 4 Port"
+                                label="Go Port"
                                 value={endpoint4}
                                 onChange={(e) => setEndpoint4(e.target.value)}
                                 fullWidth
