@@ -257,9 +257,9 @@ const MainControl: React.FC = () => {
                         </Stack>
                         {/* Additional endpoints  change the names below. CHANGEME */}
                         <Stack direction="row" alignItems="center">
-                            <FormControlLabel value="endpoint3" control={<Radio />} label="Endpoint 3" />
+                            <FormControlLabel value="endpoint3" control={<Radio />} label="Ruby" />
                             <TextField
-                                label="CHANGEME 3 Port"
+                                label="Ruby Port"
                                 value={endpoint3}
                                 onChange={(e) => setEndpoint3(e.target.value)}
                                 fullWidth

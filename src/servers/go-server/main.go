@@ -43,6 +43,7 @@ func addUser(w http.ResponseWriter, r *http.Request) {
 	nextID++
 	users = append(users, user)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(user)
 }
 
@@ -51,10 +52,12 @@ func updateUserByID(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.Atoi(params["id"])
 	for i, user := range users {
 		if user.ID == id {
-			json.NewDecoder(r.Body).Decode(&user)
-			users[i] = user
+			var updatedUser User
+			json.NewDecoder(r.Body).Decode(&updatedUser)
+			updatedUser.ID = id // Ensure the ID remains the same
+			users[i] = updatedUser
 			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(user)
+			json.NewEncoder(w).Encode(updatedUser)
 			return
 		}
 	}
@@ -65,12 +68,12 @@ func addHoursWorked(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id, _ := strconv.Atoi(params["id"])
 	var hours struct {
-		Hours int `json:"hours"`
+		HoursToAdd int `json:"hoursToAdd"`
 	}
 	json.NewDecoder(r.Body).Decode(&hours)
 	for i, user := range users {
 		if user.ID == id {
-			users[i].HoursWorked += hours.Hours
+			users[i].HoursWorked += hours.HoursToAdd
 			w.Header().Set("Content-Type", "application/json")
 			json.NewEncoder(w).Encode(users[i])
 			return
@@ -85,7 +88,8 @@ func deleteUserByID(w http.ResponseWriter, r *http.Request) {
 	for i, user := range users {
 		if user.ID == id {
 			users = append(users[:i], users[i+1:]...)
-			w.WriteHeader(http.StatusNoContent)
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(user)
 			return
 		}
 	}
@@ -94,7 +98,8 @@ func deleteUserByID(w http.ResponseWriter, r *http.Request) {
 
 func deleteAllUsers(w http.ResponseWriter, r *http.Request) {
 	users = []User{}
-	w.WriteHeader(http.StatusNoContent)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(users)
 }
 
 func main() {
