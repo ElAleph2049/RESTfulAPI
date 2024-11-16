@@ -50,6 +50,14 @@
             "request": "launch",
             "mode": "debug",
             "program": "${workspaceFolder}/src/servers/go-server/main.go"
+        },
+        // run the Ruby server
+        {
+            "type": "node-terminal",
+            "name": "Ruby Server",
+            "request": "launch",
+            "command": "ruby src/servers/ruby-server/server.rb",
+            "cwd": "${workspaceFolder}"
         }
     ]
 }
